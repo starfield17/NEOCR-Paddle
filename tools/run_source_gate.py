@@ -119,6 +119,14 @@ def create_input(model: dict, seed: int, np):
     raise ValueError(f"{model['name']}: unsupported input pattern {pattern!r}")
 
 
+def configure_paddle_reference(config) -> None:
+    config.disable_gpu()
+    config.disable_mkldnn()
+    config.disable_glog_info()
+    config.switch_ir_optim(False)
+    config.set_cpu_math_library_num_threads(1)
+
+
 def capture_reference(
     model: dict, source: Path, case_directory: Path, seed: int
 ) -> tuple[list[dict], list[dict]]:
@@ -131,10 +139,7 @@ def capture_reference(
         raise FileNotFoundError(f"{model['name']}: Paddle inference.json or parameters are missing")
 
     config = paddle_infer.Config(str(model_file), str(params_file))
-    config.disable_gpu()
-    config.disable_glog_info()
-    config.switch_ir_optim(False)
-    config.set_cpu_math_library_num_threads(1)
+    configure_paddle_reference(config)
     predictor = paddle_infer.create_predictor(config)
     input_names = predictor.get_input_names()
     if input_names != [model["inputName"]]:
@@ -199,6 +204,7 @@ def main() -> int:
             "paddlex": package_version("paddlex"),
             "paddle2onnx": package_version("paddle2onnx"),
             "paddleIrOptimization": False,
+            "paddleOneDnn": False,
         },
     }
 

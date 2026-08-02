@@ -11,7 +11,7 @@ The four classifier/detector/recognizer stages use seeded random tensors. UVDoc 
 1. Download all five archives and verify SHA-256 before extraction.
 2. Reject absolute paths, parent traversal and symbolic links in each tar archive.
 3. Convert each static Paddle graph through `paddlex --paddle2onnx` at ONNX opset 17.
-4. Run the Paddle CPU predictor once with IR graph optimization disabled and the manifest-selected deterministic float32 tensor, then save every raw output. This compares the unfused source operator graph that Paddle2ONNX converts; optimized Paddle execution is covered later by end-to-end golden-image acceptance tests rather than raw graph parity.
+4. Run the Paddle generic CPU predictor once with both IR graph optimization and oneDNN disabled and the manifest-selected deterministic float32 tensor, then save every raw output. This compares the serialized Paddle operator semantics that Paddle2ONNX converts. Optimized Paddle execution is backend-specific and is covered later by end-to-end golden-image acceptance tests rather than raw graph parity.
 5. Build a gate bundle containing ONNX graphs, input tensors, expected outputs, shapes, names and tool versions.
 6. Run the C# CPU harness over the bundle on Linux x64, macOS arm64 and Windows x64.
 7. Require matching output sets/shapes and `abs(actual - expected) <= atol + rtol * abs(expected)` for every element. Defaults are `atol=1e-4`, `rtol=1e-4`; a per-model relaxation requires an ADR with evidence.
@@ -22,7 +22,7 @@ Any download mismatch, unsafe archive entry, Paddle load failure, conversion fai
 
 ## Platform scope
 
-Source conversion/reference: Ubuntu x64, Python 3.11, Paddle CPU. Shipping-harness verification: Ubuntu x64, macOS arm64 and Windows x64 using `Microsoft.ML.OnnxRuntime` CPU. Accelerated execution providers are outside this gate.
+Source conversion/reference: Ubuntu x64, Python 3.11, Paddle generic CPU with oneDNN explicitly disabled. Shipping-harness verification: Ubuntu x64, macOS arm64 and Windows x64 using `Microsoft.ML.OnnxRuntime` CPU. Accelerated execution providers are outside this gate.
 
 ## Diagnostic separation
 

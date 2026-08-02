@@ -19,7 +19,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from run_source_gate import create_input, download, safe_extract, sha256, source_directory
+from run_source_gate import (
+    configure_paddle_reference,
+    create_input,
+    download,
+    safe_extract,
+    sha256,
+    source_directory,
+)
 from verify_manifest import validate
 
 
@@ -366,11 +373,7 @@ def run_paddle(source: Path, input_name: str, input_shape: list[int], values):
     config = paddle_infer.Config(
         str(source / "inference.json"), str(source / "inference.pdiparams")
     )
-    config.disable_gpu()
-    config.disable_mkldnn()
-    config.disable_glog_info()
-    config.switch_ir_optim(False)
-    config.set_cpu_math_library_num_threads(1)
+    configure_paddle_reference(config)
     predictor = paddle_infer.create_predictor(config)
     if predictor.get_input_names() != [input_name]:
         raise ValueError(f"unexpected Paddle inputs: {predictor.get_input_names()!r}")
