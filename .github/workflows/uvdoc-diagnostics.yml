@@ -1,0 +1,43 @@
+name: uvdoc-diagnostics
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-gate.txt
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements-gate.txt
+      - run: paddlex --install paddle2onnx
+      - name: Convert optimizer variants and compare checkpoints
+        env:
+          PADDLE_PDX_MODEL_SOURCE: BOS
+        run: >-
+          python tools/uvdoc_diagnostics.py
+          --manifest manifests/models/pp-ocrv5-mobile-full-v1.json
+          --checkpoints diagnostics/uvdoc-checkpoints-v1.json
+          --cache .cache/uvdoc-diagnostics
+          --output artifacts/uvdoc-diagnostics
+      - name: Record Python environment
+        if: always()
+        run: >-
+          mkdir -p artifacts/uvdoc-diagnostics &&
+          python -m pip freeze > artifacts/uvdoc-diagnostics/python-lock.txt
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: uvdoc-diagnostics
+          path: artifacts/uvdoc-diagnostics
+          if-no-files-found: warn
+          retention-days: 14

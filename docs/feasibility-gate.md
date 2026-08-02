@@ -23,3 +23,7 @@ Any download mismatch, unsafe archive entry, Paddle load failure, conversion fai
 ## Platform scope
 
 Source conversion/reference: Ubuntu x64, Python 3.11, Paddle CPU. Shipping-harness verification: Ubuntu x64, macOS arm64 and Windows x64 using `Microsoft.ML.OnnxRuntime` CPU. Accelerated execution providers are outside this gate.
+
+## Diagnostic separation
+
+`tools/uvdoc_diagnostics.py` is a manual blocker-localization tool, not an alternate acceptance path. It may convert only UVDoc with several optimizer settings and expose intermediate graph values, but it cannot alter this gate's model set, input, opset, tolerances or pass result. A successful diagnostic identifies a converter fix to validate through the complete procedure above; it does not itself authorize worker development.

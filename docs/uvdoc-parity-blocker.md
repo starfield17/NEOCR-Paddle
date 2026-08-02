@@ -51,3 +51,26 @@ Each choice changes an earlier product constraint and therefore requires an expl
 4. Redefine acceptance around golden document images and downstream OCR quality instead of raw `1e-4` UVDoc tensor parity. This may be product-valid but deliberately weakens the present gate and needs an ADR plus a representative corpus.
 
 The recommended next investigation, if choice 1 is selected, is to expose matched Paddle and ONNX intermediate tensors from the UVDoc grid-prediction network and bisect from the first resize through the convolution blocks. Do not start this as incidental worker work.
+
+## Root-cause diagnostic harness
+
+Choice 1 is now the active investigation. The manual `uvdoc-diagnostics` workflow is intentionally separate from `feasibility-gate`; it does not change the five-model gate, model manifest or common tolerances.
+
+The diagnostic performs two checks against one Paddle coordinate-gradient reference:
+
+1. Directly converts the same pinned UVDoc source with Paddle2ONNX `--optimize_tool None`, `polygraphy` and `onnxoptimizer`, then compares each final output with ONNX Runtime graph optimization disabled.
+2. Rewrites the sole PIR `fetch` in a fresh model copy for each checkpoint and exposes the corresponding tensor from the unoptimized ONNX graph. The original extracted model is hash-checked before and after the run and is never rewritten in place.
+
+Checkpoint mapping is deliberately fail-closed. The checked-in selector identifies a supported Paddle op by type, zero-based occurrence and output index. Its ONNX counterpart defaults to `p2o.pd_op.<type>.<occurrence>.<output>`. Missing or duplicate tensors, unsupported ops, absent shape metadata, incompatible shapes and non-finite values make the schema-versioned report fail instead of selecting a nearby tensor.
+
+Run it from the repository root in the pinned Linux source environment:
+
+```sh
+python tools/uvdoc_diagnostics.py \
+  --manifest manifests/models/pp-ocrv5-mobile-full-v1.json \
+  --checkpoints diagnostics/uvdoc-checkpoints-v1.json \
+  --cache .cache/uvdoc-diagnostics \
+  --output artifacts/uvdoc-diagnostics
+```
+
+The command is expected to return non-zero until every requested optimizer variant and checkpoint satisfies the unchanged parity rule. `uvdoc-diagnostic-report.json` records exact optimizer labels, package versions, tensor mappings and metrics. Generated ONNX graphs and float tensors remain ignored by Git and are retained only as the manual workflow artifact.

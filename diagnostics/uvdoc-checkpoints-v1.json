@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "checkpoints": [
+    {
+      "id": "input-resize",
+      "opType": "bilinear_interp",
+      "occurrence": 0
+    },
+    {
+      "id": "encoder-stage-1",
+      "opType": "add",
+      "occurrence": 9
+    },
+    {
+      "id": "encoder-stage-2",
+      "opType": "add",
+      "occurrence": 22
+    },
+    {
+      "id": "backbone-tail",
+      "opType": "relu",
+      "occurrence": 40
+    },
+    {
+      "id": "reflect-pad-1",
+      "opType": "pad3d",
+      "occurrence": 0
+    },
+    {
+      "id": "prelu",
+      "opType": "prelu",
+      "occurrence": 0
+    },
+    {
+      "id": "reflect-pad-2",
+      "opType": "pad3d",
+      "occurrence": 1
+    },
+    {
+      "id": "low-resolution-grid",
+      "opType": "add",
+      "occurrence": 41
+    },
+    {
+      "id": "upsampled-grid",
+      "opType": "bilinear_interp",
+      "occurrence": 1
+    }
+  ]
+}
