@@ -3,7 +3,7 @@
   "schemaVersion": 1,
   "packageKind": "model",
   "id": "io.github.starfield17.neocr.paddle.pp-ocrv5-mobile-full",
-  "version": "0.1.0-gate.2",
+  "version": "0.1.0-gate.3",
   "displayName": "NEOCR Paddle full mobile pipeline",
   "license": "Apache-2.0",
   "defaults": {

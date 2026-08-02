@@ -11,7 +11,7 @@ The four classifier/detector/recognizer stages use seeded random tensors. UVDoc 
 1. Download all five archives and verify SHA-256 before extraction.
 2. Reject absolute paths, parent traversal and symbolic links in each tar archive.
 3. Convert each static Paddle graph through `paddlex --paddle2onnx` at ONNX opset 17.
-4. Run the Paddle CPU predictor once with the manifest-selected deterministic float32 tensor and save every raw output.
+4. Run the Paddle CPU predictor once with IR graph optimization disabled and the manifest-selected deterministic float32 tensor, then save every raw output. This compares the unfused source operator graph that Paddle2ONNX converts; optimized Paddle execution is covered later by end-to-end golden-image acceptance tests rather than raw graph parity.
 5. Build a gate bundle containing ONNX graphs, input tensors, expected outputs, shapes, names and tool versions.
 6. Run the C# CPU harness over the bundle on Linux x64, macOS arm64 and Windows x64.
 7. Require matching output sets/shapes and `abs(actual - expected) <= atol + rtol * abs(expected)` for every element. Defaults are `atol=1e-4`, `rtol=1e-4`; a per-model relaxation requires an ADR with evidence.

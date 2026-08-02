@@ -133,6 +133,7 @@ def capture_reference(
     config = paddle_infer.Config(str(model_file), str(params_file))
     config.disable_gpu()
     config.disable_glog_info()
+    config.switch_ir_optim(False)
     config.set_cpu_math_library_num_threads(1)
     predictor = paddle_infer.create_predictor(config)
     input_names = predictor.get_input_names()
@@ -197,6 +198,7 @@ def main() -> int:
             "paddleocr": package_version("paddleocr"),
             "paddlex": package_version("paddlex"),
             "paddle2onnx": package_version("paddle2onnx"),
+            "paddleIrOptimization": False,
         },
     }
 
