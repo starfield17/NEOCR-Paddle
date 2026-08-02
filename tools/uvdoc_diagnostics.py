@@ -367,6 +367,7 @@ def run_paddle(source: Path, input_name: str, input_shape: list[int], values):
         str(source / "inference.json"), str(source / "inference.pdiparams")
     )
     config.disable_gpu()
+    config.disable_mkldnn()
     config.disable_glog_info()
     config.switch_ir_optim(False)
     config.set_cpu_math_library_num_threads(1)
@@ -495,6 +496,7 @@ def main() -> int:
             "absoluteTolerance": absolute_tolerance,
             "relativeTolerance": relative_tolerance,
             "paddleIrOptimization": False,
+            "paddleOneDnn": False,
             "onnxRuntimeGraphOptimization": False,
         },
         "tools": {
