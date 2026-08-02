@@ -36,6 +36,15 @@ class ManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "official HTTPS host"):
                 validate(path)
 
+    def test_unknown_input_pattern_is_rejected(self) -> None:
+        data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        data["models"][1]["inputPattern"] = "friendlyImage"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "inputPattern"):
+                validate(path)
+
 
 if __name__ == "__main__":
     unittest.main()

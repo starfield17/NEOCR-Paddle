@@ -24,6 +24,7 @@
           "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "sourceDirectory": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
           "inputName": { "type": "string", "minLength": 1 },
+          "inputPattern": { "enum": ["random", "coordinateGradient"] },
           "inputShape": {
             "type": "array",
             "minItems": 4,

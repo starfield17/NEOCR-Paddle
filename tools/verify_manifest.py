@@ -17,6 +17,7 @@ REQUIRED_ROLES = {
     "textRecognition",
 }
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
+INPUT_PATTERNS = {"random", "coordinateGradient"}
 
 
 def validate(path: Path) -> dict:
@@ -53,6 +54,16 @@ def validate(path: Path) -> dict:
         source_directory = str(model.get("sourceDirectory", ""))
         if not source_directory or Path(source_directory).name != source_directory:
             errors.append(f"{label}.sourceDirectory must be one relative path segment")
+        input_pattern = model.get("inputPattern", "random")
+        if input_pattern not in INPUT_PATTERNS:
+            errors.append(f"{label}.inputPattern must be random or coordinateGradient")
+        if (
+            input_pattern == "coordinateGradient"
+            and isinstance(shape, list)
+            and len(shape) == 4
+            and shape[1] != 3
+        ):
+            errors.append(f"{label}.coordinateGradient requires three input channels")
 
     defaults = data.get("defaults", {})
     if any(defaults.get(role) is not False for role in REQUIRED_ROLES - {"textDetection", "textRecognition"}):

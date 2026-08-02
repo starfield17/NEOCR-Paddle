@@ -20,14 +20,29 @@ static int ValidateBundle(string bundlePath)
         throw new InvalidDataException("A gate bundle must contain schema version 1 and exactly five cases.");
     }
 
+    var failures = new List<string>();
     foreach (var relativeCasePath in index.Cases)
     {
         var casePath = ContainedPath(bundleRoot, relativeCasePath);
-        ValidateCase(
-            Path.GetDirectoryName(casePath)!,
-            Deserialize<GateCase>(casePath),
-            index.AbsoluteTolerance,
-            index.RelativeTolerance);
+        try
+        {
+            ValidateCase(
+                Path.GetDirectoryName(casePath)!,
+                Deserialize<GateCase>(casePath),
+                index.AbsoluteTolerance,
+                index.RelativeTolerance);
+        }
+        catch (Exception exception) when (exception is InvalidDataException or OnnxRuntimeException)
+        {
+            failures.Add(exception.Message);
+            Console.Error.WriteLine($"fail {exception.Message}");
+        }
+    }
+
+    if (failures.Count > 0)
+    {
+        Console.Error.WriteLine($"gate failed: {failures.Count}/{index.Cases.Count} models failed parity");
+        return 1;
     }
 
     Console.WriteLine($"gate passed: {index.ModelPackageId}@{index.ModelPackageVersion} ({index.Cases.Count} models)");
@@ -64,6 +79,7 @@ static void ValidateCase(
         throw new InvalidDataException($"{testCase.Name}: ONNX output names do not match Paddle.");
     }
 
+    var outputFailures = new List<string>();
     foreach (var expected in testCase.ExpectedOutputs)
     {
         var expectedValues = ReadFloat32(ContainedPath(caseRoot, expected.Path), expected.Shape);
@@ -77,6 +93,16 @@ static void ValidateCase(
 
         var actualValues = actual.ToArray();
         var maxAbsoluteError = 0f;
+        var maxRelativeError = 0f;
+        var violationCount = 0;
+        var firstViolation = -1;
+        double absoluteErrorSum = 0;
+        double squaredErrorSum = 0;
+        double actualSum = 0;
+        double expectedSum = 0;
+        double actualSquaredSum = 0;
+        double expectedSquaredSum = 0;
+        double productSum = 0;
         for (var index = 0; index < actualValues.Length; index++)
         {
             var actualValue = actualValues[index];
@@ -88,18 +114,46 @@ static void ValidateCase(
             }
 
             var absoluteError = MathF.Abs(actualValue - expectedValue);
+            var relativeError = absoluteError / MathF.Max(MathF.Abs(expectedValue), float.Epsilon);
             maxAbsoluteError = MathF.Max(maxAbsoluteError, absoluteError);
+            maxRelativeError = MathF.Max(maxRelativeError, relativeError);
+            absoluteErrorSum += absoluteError;
+            squaredErrorSum += absoluteError * absoluteError;
+            actualSum += actualValue;
+            expectedSum += expectedValue;
+            actualSquaredSum += actualValue * actualValue;
+            expectedSquaredSum += expectedValue * expectedValue;
+            productSum += actualValue * expectedValue;
             if (absoluteError > absoluteTolerance + (relativeTolerance * MathF.Abs(expectedValue)))
             {
-                throw new InvalidDataException(
-                    $"{testCase.Name}/{expected.Name}: parity failed at {index}; " +
-                    $"Paddle={expectedValue:R}, ONNX={actualValue:R}, abs={absoluteError:R}.");
+                firstViolation = firstViolation < 0 ? index : firstViolation;
+                violationCount++;
             }
         }
 
-        Console.WriteLine(
-            $"pass {testCase.Name}/{expected.Name} shape=[{string.Join(',', expected.Shape)}] " +
-            $"maxAbs={maxAbsoluteError:R}");
+        var count = actualValues.Length;
+        var actualVariance = actualSquaredSum - ((actualSum * actualSum) / count);
+        var expectedVariance = expectedSquaredSum - ((expectedSum * expectedSum) / count);
+        var covariance = productSum - ((actualSum * expectedSum) / count);
+        var correlation = covariance / Math.Sqrt(actualVariance * expectedVariance);
+        var metrics = $"{testCase.Name}/{expected.Name} shape=[{string.Join(',', expected.Shape)}] " +
+            $"maxAbs={maxAbsoluteError:R} maxRel={maxRelativeError:R} " +
+            $"mae={absoluteErrorSum / count:R} rmse={Math.Sqrt(squaredErrorSum / count):R} " +
+            $"correlation={correlation:R}";
+        if (violationCount == 0)
+        {
+            Console.WriteLine($"pass {metrics}");
+        }
+        else
+        {
+            outputFailures.Add(
+                $"{metrics} violations={violationCount}/{actualValues.Length} first={firstViolation}");
+        }
+    }
+
+    if (outputFailures.Count > 0)
+    {
+        throw new InvalidDataException(string.Join("; ", outputFailures));
     }
 }
 

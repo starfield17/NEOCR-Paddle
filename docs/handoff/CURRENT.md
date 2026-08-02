@@ -17,6 +17,9 @@ Milestone 4A scaffolding is in progress on `main`.
 ## Known gaps
 
 - Heavyweight gate run `30736238229` stopped after successful document-orientation and UVDoc conversion because the manifest expected UVDoc input `img` while the static graph exposes `image`. This provenance error was corrected without changing the model, graph, shape or parity tolerance; a clean rerun is required.
+- Rerun `30736340358` converted and captured all five models. Document orientation passed C# ORT parity (`maxAbs=1.7881393e-7`), then UVDoc failed at the first reported element (`abs=0.016703725` versus `1e-4` tolerance). Production-worker work is stopped while the complete bundle is diagnosed; thresholds and model selection remain unchanged.
+- The downloaded full bundle was rerun on macOS arm64 with aggregate diagnostics. Four stages passed (`doc-orientation maxAbs=5.96e-8`, `textline-orientation=1.79e-7`, `detection=1.36e-7`, `recognition=2.01e-5`); only UVDoc failed (`maxAbs=1.827`, `MAE=0.440`, `98,285/98,304` violations). An independent bilinear sampler matched ONNX Runtime to `1.20e-7`, localizing the noisy-input discrepancy to the predicted sampling coordinates rather than the C# tensor reader or ORT `GridSample` kernel.
+- UVDoc's gate input is now a deterministic coordinate gradient. This is a stricter geometry-specific probe at the unchanged `1e-4` element-wise tolerance; a clean heavyweight rerun is required before the gate can pass.
 - No production worker, preprocessing/postprocessing pipeline or NEOCR plugin package exists.
 - No runtime or model GitHub Release asset exists.
 - CUDA and cross-vendor GPU runtime packages are not designed yet.

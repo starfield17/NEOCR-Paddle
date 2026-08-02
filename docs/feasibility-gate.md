@@ -2,14 +2,16 @@
 
 ## Inputs
 
-`manifests/models/pp-ocrv5-mobile-full-v1.json` is authoritative. Every source archive has an immutable URL, SHA-256, expected extracted directory and deterministic test tensor shape. The source documentation is PaddleOCR's version-3 OCR pipeline and module documentation.
+`manifests/models/pp-ocrv5-mobile-full-v1.json` is authoritative. Every source archive has an immutable URL, SHA-256, expected extracted directory and deterministic test tensor shape and pattern. The source documentation is PaddleOCR's version-3 OCR pipeline and module documentation.
+
+The four classifier/detector/recognizer stages use seeded random tensors. UVDoc uses a deterministic three-channel coordinate gradient: its final operation is bilinear spatial resampling, so the first two output channels directly measure the predicted sampling coordinates. Random white noise is unsuitable for this stage because harmless subpixel coordinate drift produces unrelated neighboring pixel values and obscures the geometry being tested. The coordinate probe does not relax the common element-wise tolerance.
 
 ## Procedure
 
 1. Download all five archives and verify SHA-256 before extraction.
 2. Reject absolute paths, parent traversal and symbolic links in each tar archive.
 3. Convert each static Paddle graph through `paddlex --paddle2onnx` at ONNX opset 17.
-4. Run the Paddle CPU predictor once with a deterministic float32 tensor and save every raw output.
+4. Run the Paddle CPU predictor once with the manifest-selected deterministic float32 tensor and save every raw output.
 5. Build a gate bundle containing ONNX graphs, input tensors, expected outputs, shapes, names and tool versions.
 6. Run the C# CPU harness over the bundle on Linux x64, macOS arm64 and Windows x64.
 7. Require matching output sets/shapes and `abs(actual - expected) <= atol + rtol * abs(expected)` for every element. Defaults are `atol=1e-4`, `rtol=1e-4`; a per-model relaxation requires an ADR with evidence.

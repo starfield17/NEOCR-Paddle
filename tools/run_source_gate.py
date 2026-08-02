@@ -98,6 +98,27 @@ def safe_name(name: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "_", name)
 
 
+def create_input(model: dict, seed: int, np):
+    pattern = model.get("inputPattern", "random")
+    if pattern == "random":
+        generator = np.random.default_rng(seed)
+        return generator.uniform(-1.0, 1.0, size=model["inputShape"]).astype("<f4")
+
+    if pattern == "coordinateGradient":
+        batch, channels, height, width = model["inputShape"]
+        if channels != 3:
+            raise ValueError(f"{model['name']}: coordinateGradient requires three channels")
+        horizontal = np.linspace(-1.0, 1.0, width, dtype="<f4")
+        vertical = np.linspace(-1.0, 1.0, height, dtype="<f4")[:, np.newaxis]
+        image = np.empty((channels, height, width), dtype="<f4")
+        image[0] = horizontal[np.newaxis, :]
+        image[1] = vertical
+        image[2] = (image[0] + image[1]) * 0.5
+        return np.repeat(image[np.newaxis, :], batch, axis=0)
+
+    raise ValueError(f"{model['name']}: unsupported input pattern {pattern!r}")
+
+
 def capture_reference(
     model: dict, source: Path, case_directory: Path, seed: int
 ) -> tuple[list[dict], list[dict]]:
@@ -120,8 +141,7 @@ def capture_reference(
             f"{model['name']}: expected input {model['inputName']!r}, got {input_names!r}"
         )
 
-    generator = np.random.default_rng(seed)
-    values = generator.uniform(-1.0, 1.0, size=model["inputShape"]).astype("<f4")
+    values = create_input(model, seed, np)
     input_path = case_directory / "input.f32"
     values.tofile(input_path)
     input_handle = predictor.get_input_handle(input_names[0])
@@ -209,6 +229,7 @@ def main() -> int:
         )
         case = {
             "name": model["name"],
+            "inputPattern": model.get("inputPattern", "random"),
             "modelPath": model_path.name,
             "inputs": inputs,
             "expectedOutputs": outputs,
