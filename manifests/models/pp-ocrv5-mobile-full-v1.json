@@ -1,0 +1,80 @@
+{
+  "$schema": "../../schemas/model-package.schema.json",
+  "schemaVersion": 1,
+  "packageKind": "model",
+  "id": "io.github.starfield17.neocr.paddle.pp-ocrv5-mobile-full",
+  "version": "0.1.0-gate.1",
+  "displayName": "NEOCR Paddle full mobile pipeline",
+  "license": "Apache-2.0",
+  "defaults": {
+    "documentOrientation": false,
+    "documentUnwarping": false,
+    "textLineOrientation": false
+  },
+  "presets": {
+    "document": {
+      "documentOrientation": true,
+      "documentUnwarping": true,
+      "textLineOrientation": true
+    }
+  },
+  "models": [
+    {
+      "role": "documentOrientation",
+      "name": "PP-LCNet_x1_0_doc_ori",
+      "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LCNet_x1_0_doc_ori_infer.tar",
+      "sha256": "282337df5c41f7cdf8dacd5acf71fddfdc10218399f4b318463c17f4eae96c97",
+      "sourceDirectory": "PP-LCNet_x1_0_doc_ori_infer",
+      "inputName": "x",
+      "inputShape": [1, 3, 224, 224]
+    },
+    {
+      "role": "documentUnwarping",
+      "name": "UVDoc",
+      "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/UVDoc_infer.tar",
+      "sha256": "15d79c6bcbf738b7e132eedff6ed57c7e834c73cbc140a1fff8fd8ab9c2a35b9",
+      "sourceDirectory": "UVDoc_infer",
+      "inputName": "img",
+      "inputShape": [1, 3, 256, 128]
+    },
+    {
+      "role": "textLineOrientation",
+      "name": "PP-LCNet_x1_0_textline_ori",
+      "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-LCNet_x1_0_textline_ori_infer.tar",
+      "sha256": "6171f69605215a85624d650e9079fa45f7c3eaf944296181bcc5395bf3ddc7f6",
+      "sourceDirectory": "PP-LCNet_x1_0_textline_ori_infer",
+      "inputName": "x",
+      "inputShape": [1, 3, 80, 160]
+    },
+    {
+      "role": "textDetection",
+      "name": "PP-OCRv5_mobile_det",
+      "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+      "sha256": "50446e5d01ac2a73d5319c89513281f6578414c888c602f9af13f93feefffc58",
+      "sourceDirectory": "PP-OCRv5_mobile_det_infer",
+      "inputName": "x",
+      "inputShape": [1, 3, 736, 736]
+    },
+    {
+      "role": "textRecognition",
+      "name": "PP-OCRv5_mobile_rec",
+      "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_rec_infer.tar",
+      "sha256": "566b9512b34e34a9f0db54d87b51fa5a0b9ed2cf1ab7e49728cc0b8b5a64f414",
+      "sourceDirectory": "PP-OCRv5_mobile_rec_infer",
+      "inputName": "x",
+      "inputShape": [1, 3, 48, 320]
+    }
+  ],
+  "parity": {
+    "seed": 240802,
+    "absoluteTolerance": 0.0001,
+    "relativeTolerance": 0.0001,
+    "onnxOpset": 17
+  },
+  "provenance": {
+    "publisher": "PaddlePaddle/PaddleOCR",
+    "modelFormat": "Paddle static graph",
+    "sourceDocumentation": "https://www.paddleocr.ai/main/en/version3.x/pipeline_usage/OCR.html",
+    "verifiedAt": "2026-08-02"
+  }
+}

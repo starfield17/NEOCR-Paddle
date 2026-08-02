@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "packageKind": "runtime",
+  "id": "io.github.starfield17.neocr.runtime.onnxruntime.cpu",
+  "version": "1.28.0-neocr.1",
+  "executionProviders": ["CPUExecutionProvider"],
+  "supportedRids": ["osx-arm64", "win-x64"],
+  "license": "MIT",
+  "files": []
+}
