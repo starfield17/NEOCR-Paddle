@@ -16,7 +16,7 @@ Milestone 4A scaffolding is in progress on `main`.
 
 ## Known gaps
 
-- The heavyweight GitHub Actions gate has not yet produced a result.
+- Heavyweight gate run `30736238229` stopped after successful document-orientation and UVDoc conversion because the manifest expected UVDoc input `img` while the static graph exposes `image`. This provenance error was corrected without changing the model, graph, shape or parity tolerance; a clean rerun is required.
 - No production worker, preprocessing/postprocessing pipeline or NEOCR plugin package exists.
 - No runtime or model GitHub Release asset exists.
 - CUDA and cross-vendor GPU runtime packages are not designed yet.

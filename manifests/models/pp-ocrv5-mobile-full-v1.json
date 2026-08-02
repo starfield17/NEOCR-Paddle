@@ -34,7 +34,7 @@
       "sourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/UVDoc_infer.tar",
       "sha256": "15d79c6bcbf738b7e132eedff6ed57c7e834c73cbc140a1fff8fd8ab9c2a35b9",
       "sourceDirectory": "UVDoc_infer",
-      "inputName": "img",
+      "inputName": "image",
       "inputShape": [1, 3, 256, 128]
     },
     {
