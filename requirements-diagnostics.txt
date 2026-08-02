@@ -1,0 +1,4 @@
+-r requirements-gate.txt
+
+# Diagnostic-only Python runtime. Shipping inference remains C#.
+onnxruntime==1.28.0

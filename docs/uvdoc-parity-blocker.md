@@ -74,3 +74,5 @@ python tools/uvdoc_diagnostics.py \
 ```
 
 The command is expected to return non-zero until every requested optimizer variant and checkpoint satisfies the unchanged parity rule. `uvdoc-diagnostic-report.json` records exact optimizer labels, package versions, tensor mappings and metrics. Generated ONNX graphs and float tensors remain ignored by Git and are retained only as the manual workflow artifact.
+
+Diagnostic run `30746228042` is not parity evidence: the unoptimized variant ran before Polygraphy attempted its own ONNX Runtime auto-install and failed to import the package. The dedicated diagnostic requirements now pin Python ONNX Runtime 1.28.0 before any conversion so optimizer ordering cannot change dependency availability.
