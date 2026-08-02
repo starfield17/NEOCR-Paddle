@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 from uvdoc_diagnostics import (  # noqa: E402
     CheckpointSelector,
+    checkpoint_output_shape,
     compare_arrays,
     diagnostic_passed,
     resolve_onnx_tensor,
@@ -118,6 +119,19 @@ class OnnxMappingTests(unittest.TestCase):
         self.assertTrue(shapes_compatible([-1, 3, 8, 8], ["batch", 3, 8, 8]))
         self.assertFalse(shapes_compatible([-1, 3, 8, 8], [1, 4, 8, 8]))
         self.assertFalse(shapes_compatible([-1, 3, 8, 8], [1, 3, 8]))
+
+    def test_missing_inferred_rank_uses_paddle_shape_with_dynamic_dimensions(self) -> None:
+        self.assertEqual([None, 32, 45, 31], checkpoint_output_shape([-1, 32, 45, 31], []))
+
+    def test_known_inferred_shape_is_preserved(self) -> None:
+        self.assertEqual(
+            ["batch", 32, 45, 31],
+            checkpoint_output_shape([-1, 32, 45, 31], ["batch", 32, 45, 31]),
+        )
+
+    def test_incompatible_known_inferred_shape_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            checkpoint_output_shape([-1, 32, 45, 31], [1, 16, 45, 31])
 
 
 class ReportMetricTests(unittest.TestCase):

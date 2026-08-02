@@ -230,6 +230,22 @@ def shapes_compatible(expected: Iterable[int], actual: Iterable[int | str | None
     )
 
 
+def checkpoint_output_shape(
+    expected: Iterable[int], inferred: Iterable[int | str | None]
+) -> list[int | str | None]:
+    expected_shape = tuple(expected)
+    inferred_shape = tuple(inferred)
+    if inferred_shape:
+        if not shapes_compatible(expected_shape, inferred_shape):
+            raise ValueError(
+                f"Paddle shape {expected_shape} does not match ONNX shape {list(inferred_shape)}"
+            )
+        return list(inferred_shape)
+    if not expected_shape:
+        return []
+    return [None if dimension < 0 else dimension for dimension in expected_shape]
+
+
 def _shape_and_values(value) -> tuple[tuple[int, ...], list[float]]:
     if hasattr(value, "shape") and hasattr(value, "flat"):
         return tuple(int(dimension) for dimension in value.shape), [
@@ -415,13 +431,12 @@ def expose_onnx_checkpoints(
             else dimension.dim_param or None
             for dimension in tensor_type.shape.dim
         ]
-        if not shapes_compatible(checkpoint.shape, shape):
-            raise ValueError(
-                f"{checkpoint.selector.identifier}: Paddle shape {checkpoint.shape} "
-                f"does not match ONNX shape {shape}"
-            )
+        try:
+            output_shape = checkpoint_output_shape(checkpoint.shape, shape)
+        except ValueError as error:
+            raise ValueError(f"{checkpoint.selector.identifier}: {error}") from error
         model.graph.output.append(
-            helper.make_tensor_value_info(name, onnx.TensorProto.FLOAT, shape)
+            helper.make_tensor_value_info(name, onnx.TensorProto.FLOAT, output_shape)
         )
         resolved[checkpoint.selector.identifier] = name
     onnx.checker.check_model(model)
@@ -524,6 +539,8 @@ def main() -> int:
                     "optimizer": optimizer,
                     "status": "complete",
                     "modelPath": onnx_path.name,
+                    "modelSha256": sha256(onnx_path),
+                    "nodeCount": len(__import__("onnx").load(onnx_path).graph.node),
                     "metrics": metrics,
                 }
             )
