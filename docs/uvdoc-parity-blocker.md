@@ -1,10 +1,10 @@
 # UVDoc ONNX parity blocker
 
-## Decision
+## Resolution
 
-Milestone 4A is stopped. Do not build or publish the production worker until this blocker is resolved and the unchanged five-model gate passes on Linux x64, macOS arm64 and Windows x64.
+Resolved on 2026-08-02. Complete feasibility-gate run [`30747231341`](https://github.com/starfield17/NEOCR-Paddle/actions/runs/30747231341) passed all five models on Linux x64, macOS arm64 and Windows x64 at commit `b8a8fee`, with the unchanged common tolerance. Milestone 4A is complete and production-worker work may proceed.
 
-The fixed `UVDoc` Paddle graph converts to loadable ONNX opset 17, but its predicted unwarping grid does not meet raw-output parity under the common `atol=1e-4`, `rtol=1e-4` rule. The other four fixed models pass. Do not silently omit UVDoc, relax only its tolerance, switch it to Python, or publish a four-model package.
+The apparent UVDoc conversion failure came from a backend-contaminated Paddle reference: Paddle's oneDNN resize path ignored serialized interpolation attributes. Paddle2ONNX correctly preserved those attributes, so no converter fork or upstream patch was created. The formal reference now explicitly disables oneDNN and records that choice in the gate bundle. The investigation below is retained as historical evidence.
 
 ## Reproduction
 
@@ -85,4 +85,4 @@ Run `30746603436` completed all nine checkpoints and localized the first diverge
 
 The serialized PIR explicitly contains `align_corners=true`, and Paddle2ONNX correctly emits ONNX `coordinate_transformation_mode=align_corners`. Paddle's generic CPU interpolation kernel consumes this attribute, while its oneDNN interpolation kernel marks both `align_corners` and `align_mode` unused. Diagnostic run `30747102151` explicitly disabled oneDNN: the first-resize difference fell to `2.98e-7` and final UVDoc difference to `1.19e-6`, passing the unchanged common tolerance for all three ONNX optimizer variants. The blocker was therefore a backend-contaminated Paddle reference, not a Paddle2ONNX mapper defect; no fork or upstream converter patch is justified.
 
-The formal source gate now shares the same explicit reference configuration and records `paddleOneDnn=false` in `gate-index.json`. A complete five-model cross-platform rerun remains the release stop/go authority; the diagnostic pass alone does not close Milestone 4A.
+The formal source gate now shares the same explicit reference configuration and records `paddleOneDnn=false` in `gate-index.json`. Complete run `30747231341` subsequently passed the source validation and all three cross-platform C# jobs, closing Milestone 4A.

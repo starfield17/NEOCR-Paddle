@@ -23,8 +23,10 @@ The required order is document orientation, UVDoc unwarping, text detection, per
 
 ## Milestone 4A gate
 
-Linux x64 is the reproducible Paddle reference environment. It downloads source archives from pinned official URLs, verifies SHA-256, converts with the official PaddleX Paddle2ONNX path, and records deterministic float32 input/output tensors. C# ONNX Runtime then checks output names, shapes, finite values and element-wise tolerances on Linux x64, macOS arm64 and Windows x64.
+Linux x64 is the reproducible Paddle reference environment. It downloads source archives from pinned official URLs, verifies SHA-256, converts with the official PaddleX Paddle2ONNX path, and records deterministic float32 input/output tensors. The reference predictor explicitly disables graph optimization and oneDNN so it measures the serialized Paddle operator semantics rather than a backend-specific optimized kernel. C# ONNX Runtime then checks output names, shapes, finite values and element-wise tolerances on Linux x64, macOS arm64 and Windows x64.
 
 The gate is all-or-nothing. Missing operators, conversion errors, output-shape drift or parity failures stop work before the worker is built. Generated artifacts are retained only as CI artifacts for diagnosis and are not release packages.
+
+The fixed five-model set passed this gate in run `30747231341` at commit `b8a8fee` without changing the common `atol=1e-4`, `rtol=1e-4` rule. Milestone 4A is complete; this evidence authorizes production-worker work but is not itself a release artifact.
 
 CPU is the first runtime. CUDA and a cross-vendor GPU option are separate later runtime packages; their availability must be stated per RID and never inferred from the model package.

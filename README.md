@@ -4,7 +4,7 @@ Independent Paddle OCR distribution for [NEOCR](https://github.com/starfield17/N
 
 Milestone 4A is a stop/go gate. It pins five Paddle inference archives, converts each model to ONNX on Linux x64, captures Paddle raw outputs, and verifies the same ONNX outputs through a C# ONNX Runtime harness on Linux x64, macOS arm64 and Windows x64. No production worker is implemented until all five pass.
 
-Current status: the four orientation/detection/recognition graphs pass, while UVDoc's converted grid-prediction graph fails the unchanged parity threshold. Milestone 4A is stopped; see [`docs/uvdoc-parity-blocker.md`](docs/uvdoc-parity-blocker.md) for reproducible evidence and the decisions required to continue.
+Current status: Milestone 4A passed for all five fixed models on Linux x64, macOS arm64 and Windows x64 in [feasibility-gate run 30747231341](https://github.com/starfield17/NEOCR-Paddle/actions/runs/30747231341). The resolved UVDoc investigation is retained in [`docs/uvdoc-parity-blocker.md`](docs/uvdoc-parity-blocker.md).
 
 The fixed first model set is:
 
