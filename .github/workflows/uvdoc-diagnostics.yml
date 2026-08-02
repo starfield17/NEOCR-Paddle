@@ -32,7 +32,7 @@ jobs:
       - run: python -m pip install -r requirements-diagnostics.txt
       - name: Select Paddle reference runtime
         if: inputs.paddle-version != '3.2.1'
-        run: python -m pip install --no-deps --force-reinstall "paddlepaddle==${{ inputs.paddle-version }}"
+        run: python -m pip install --force-reinstall "paddlepaddle==${{ inputs.paddle-version }}"
       - run: paddlex --install paddle2onnx
       - name: Convert optimizer variants and compare checkpoints
         env:
